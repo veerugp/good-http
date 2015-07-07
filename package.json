@@ -25,10 +25,5 @@
   "engines": {
     "node": ">=0.10.x"
   },
-  "licenses": [
-    {
-      "type": "BSD",
-      "url": "http://github.com/hapijs/good-http/raw/master/LICENSE"
-    }
-  ]
+  "license": "BSD-3-Clause"
 }
