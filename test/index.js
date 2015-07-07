@@ -79,9 +79,9 @@ describe('GoodHttp', function () {
         done();
     });
 
-    it('does not report if the event que is empty', function (done) {
+    it('does not report if the event queue is empty', function (done) {
 
-        var reporter = GoodHttp({ log: '*'}, { endpoint: 'http://localhost:31337', threshold: 5 });
+        var reporter = GoodHttp({ log: '*' }, { endpoint: 'http://localhost:31337', threshold: 5 });
         var result = reporter._sendMessages();
         expect(result).to.not.exist();
         done();
@@ -261,6 +261,78 @@ describe('GoodHttp', function () {
                         'x-api-key': 12345
                     }
                 }
+            });
+
+            reporter.init(stream, ee, function (err) {
+
+                expect(err).to.not.exist();
+
+                for (var i = 0; i < 10; ++i) {
+
+                    var eventType = i % 2 === 0 ? 'log' : 'request';
+
+                    stream.push({
+                        id: i,
+                        value: 'this is data for item ' + 1,
+                        timestamp: Math.floor(Date.now() + (Math.random() * 10000000000)),
+                        event: eventType
+                    });
+                }
+            });
+        });
+    });
+
+    it('won\'t group events when mapEvents is false', function (done) {
+
+        var stream = internals.readStream();
+        var hitCount = 0;
+        var ee = new EventEmitter();
+        var server = Http.createServer(function (req, res) {
+
+            hitCount++;
+            var data = '';
+
+            req.on('data', function (chunk) {
+
+                data += chunk;
+            });
+
+            req.on('end', function () {
+
+                var payload = JSON.parse(data);
+                var events = payload.events;
+
+                expect(req.headers['x-api-key']).to.equal('12345');
+                expect(payload.schema).to.equal('good-http');
+
+                expect(events.log).to.not.exist();
+                expect(events.request).to.not.exist();
+
+                if (hitCount === 1) {
+                    res.end();
+                }
+                else if (hitCount === 2) {
+                    expect(events.length).to.equal(5);
+                    res.end();
+                    server.close(done);
+                }
+            });
+        });
+
+        server.listen(0, '127.0.0.1', function () {
+
+            var reporter = new GoodHttp({
+                log: '*',
+                request: '*'
+            }, {
+                endpoint: internals.getUri(server),
+                threshold: 5,
+                wreck: {
+                    headers: {
+                        'x-api-key': 12345
+                    }
+                },
+                mapEvents: false
             });
 
             reporter.init(stream, ee, function (err) {
