@@ -3,7 +3,7 @@
   "version": "5.0.0",
   "repository": "git://github.com/hapijs/good-http",
   "description": "Http(s) broadcasting for Good process monitor",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
     "test": "lab -m 5000 -t 100 -v -La code",
     "test-cov-html": "lab -m 5000 -r html -o coverage.html -La code"
