@@ -5,9 +5,9 @@
   "description": "Http(s) broadcasting for Good process monitor",
   "main": "lib/index.js",
   "scripts": {
-      "test": "lab -a code -t 100 -L",
-      "test-tap": "lab -a code -r tap -o tests.tap",
-      "test-cov-html": "lab -a code -r html -o coverage.html"
+    "test": "lab -a code -t 100 -L",
+    "test-tap": "lab -a code -r tap -o tests.tap",
+    "test-cov-html": "lab -a code -r html -o coverage.html"
   },
   "dependencies": {
     "good-squeeze": "2.x.x",
