@@ -74,7 +74,7 @@ describe('GoodHttp', function () {
 
         expect(function () {
 
-            var reporter = GoodHttp(null, null);
+            GoodHttp(null, null);
         }).to.throw('config.endpoint must be a string');
         done();
     });
