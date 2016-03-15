@@ -10,20 +10,20 @@
   },
   "dependencies": {
     "good-squeeze": "2.x.x",
-    "hoek": "2.x.x",
+    "hoek": "3.x.x",
     "json-stringify-safe": "5.0.x",
-    "lodash.groupby": "3.0.x",
-    "wreck": "5.x.x"
+    "lodash.groupby": "4.2.0",
+    "wreck": "7.x.x"
   },
   "peerDependencies": {
     "good": ">= 6.x.x"
   },
   "devDependencies": {
-    "code": "1.x.x",
-    "lab": "6.x.x"
+    "code": "2.x.x",
+    "lab": "10.x.x"
   },
   "engines": {
-    "node": ">=0.10.x"
+    "node": ">=4.0.0"
   },
   "license": "BSD-3-Clause"
 }

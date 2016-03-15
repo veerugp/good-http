@@ -1,24 +1,24 @@
+'use strict';
 // Load modules
 
-var EventEmitter = require('events').EventEmitter;
-var Stream = require('stream');
-var Http = require('http');
-var Code = require('code');
-var Lab = require('lab');
-var lab = exports.lab = Lab.script();
-var GoodHttp = require('..');
-var Hoek = require('hoek');
+const EventEmitter = require('events').EventEmitter;
+const Stream = require('stream');
+const Http = require('http');
+const Code = require('code');
+const Lab = require('lab');
+const lab = exports.lab = Lab.script();
+const GoodHttp = require('..');
+const Hoek = require('hoek');
 
 // Declare internals
 
-var internals = {};
+const internals = {};
 
 internals.isSorted = function (elements) {
 
-    var i = 0;
-    var il = elements.length;
+    let i = 0;
 
-    while (i < il && elements[i + 1]) {
+    while (i < elements.length && elements[i + 1]) {
 
         if (elements[i].timestamp > elements[i + 1].timestamp) {
             return false;
@@ -30,14 +30,14 @@ internals.isSorted = function (elements) {
 
 internals.getUri = function (server) {
 
-    var address = server.address();
+    const address = server.address();
 
     return 'http://' + address.address + ':' + address.port;
 };
 
-internals.readStream = function (done) {
+internals.readStream = (done) => {
 
-    var result = new Stream.Readable({ objectMode: true });
+    const result = new Stream.Readable({ objectMode: true });
     result._read = Hoek.ignore;
 
     if (typeof done === 'function') {
@@ -49,62 +49,62 @@ internals.readStream = function (done) {
 
 // Test shortcuts
 
-var describe = lab.describe;
-var it = lab.it;
-var expect = Code.expect;
+const describe = lab.describe;
+const it = lab.it;
+const expect = Code.expect;
 
 
-describe('GoodHttp', function () {
+describe('GoodHttp', () => {
 
-    it('allows creation without using new', function (done) {
+    it('allows creation without using new', (done) => {
 
-        var reporter = GoodHttp({ log: '*' }, { endpoint: true });
+        const reporter = GoodHttp({ log: '*' }, { endpoint: true });
         expect(reporter).to.exist();
         done();
     });
 
-    it('allows creation using new', function (done) {
+    it('allows creation using new', (done) => {
 
-        var reporter = new GoodHttp({ log: '*' }, { endpoint: true });
+        const reporter = new GoodHttp({ log: '*' }, { endpoint: true });
         expect(reporter).to.exist();
         done();
     });
 
-    it('throws an error if missing endpoint', function (done) {
+    it('throws an error if missing endpoint', (done) => {
 
-        expect(function () {
+        expect(() => {
 
             GoodHttp(null, null);
         }).to.throw('config.endpoint must be a string');
         done();
     });
 
-    it('does not report if the event queue is empty', function (done) {
+    it('does not report if the event queue is empty', (done) => {
 
-        var reporter = GoodHttp({ log: '*' }, { endpoint: 'http://localhost:31337', threshold: 5 });
-        var result = reporter._sendMessages();
+        const reporter = GoodHttp({ log: '*' }, { endpoint: 'http://localhost:31337', threshold: 5 });
+        const result = reporter._sendMessages();
         expect(result).to.not.exist();
         done();
     });
 
-    it('honors the threshold setting and sends the events in a batch', function (done) {
+    it('honors the threshold setting and sends the events in a batch', (done) => {
 
-        var stream = internals.readStream();
-        var hitCount = 0;
-        var ee = new EventEmitter();
-        var server = Http.createServer(function (req, res) {
+        const stream = internals.readStream();
+        let hitCount = 0;
+        const ee = new EventEmitter();
+        const server = Http.createServer((req, res) => {
 
-            var data = '';
+            let data = '';
             hitCount++;
 
-            req.on('data', function (chunk) {
+            req.on('data', (chunk) => {
 
                 data += chunk;
             });
-            req.on('end', function () {
+            req.on('end', () => {
 
-                var payload = JSON.parse(data);
-                var events = payload.events.log;
+                const payload = JSON.parse(data);
+                const events = payload.events.log;
 
                 expect(req.headers['x-api-key']).to.equal('12345');
                 expect(payload.schema).to.equal('good-http');
@@ -125,9 +125,9 @@ describe('GoodHttp', function () {
             });
         });
 
-        server.listen(0, '127.0.0.1', function () {
+        server.listen(0, '127.0.0.1', () => {
 
-            var reporter = GoodHttp({ log: '*' }, {
+            const reporter = GoodHttp({ log: '*' }, {
                 endpoint: internals.getUri(server),
                 threshold: 5,
                 wreck: {
@@ -137,11 +137,11 @@ describe('GoodHttp', function () {
                 }
             });
 
-            reporter.init(stream, ee, function (err) {
+            reporter.init(stream, ee, (err) => {
 
                 expect(err).to.not.exist();
 
-                for (var i = 0; i < 10; ++i) {
+                for (let i = 0; i < 10; ++i) {
                     stream.push({
                         id: i,
                         value: 'this is data for item ' + 1,
@@ -152,22 +152,22 @@ describe('GoodHttp', function () {
         });
     });
 
-    it('sends each event individually if threshold is 0', function (done) {
+    it('sends each event individually if threshold is 0', (done) => {
 
-        var stream = internals.readStream();
-        var hitCount = 0;
-        var ee = new EventEmitter();
-        var server = Http.createServer(function (req, res) {
+        const stream = internals.readStream();
+        let hitCount = 0;
+        const ee = new EventEmitter();
+        const server = Http.createServer((req, res) => {
 
-            var data = '';
-            req.on('data', function (chunk) {
+            let data = '';
+            req.on('data', (chunk) => {
 
                 data += chunk;
             });
-            req.on('end', function () {
+            req.on('end', () => {
 
                 hitCount++;
-                var payload = JSON.parse(data);
+                const payload = JSON.parse(data);
 
                 expect(payload.events).to.exist();
                 expect(payload.events.log).to.exist();
@@ -182,18 +182,18 @@ describe('GoodHttp', function () {
             });
         });
 
-        server.listen(0, '127.0.01', function () {
+        server.listen(0, '127.0.01', () => {
 
-            var reporter = new GoodHttp({ log: '*' }, {
+            const reporter = new GoodHttp({ log: '*' }, {
                 endpoint: internals.getUri(server),
                 threshold: 0
             });
 
-            reporter.init(stream, ee, function (err) {
+            reporter.init(stream, ee, (err) => {
 
                 expect(err).to.not.exist();
 
-                for (var i = 0; i < 10; ++i) {
+                for (let i = 0; i < 10; ++i) {
 
                     stream.push({
                         id: i,
@@ -205,25 +205,25 @@ describe('GoodHttp', function () {
         });
     });
 
-    it('sends the events in an envelop grouped by type and ordered by timestamp', function (done) {
+    it('sends the events in an envelop grouped by type and ordered by timestamp', (done) => {
 
-        var stream = internals.readStream();
-        var hitCount = 0;
-        var ee = new EventEmitter();
-        var server = Http.createServer(function (req, res) {
+        const stream = internals.readStream();
+        let hitCount = 0;
+        const ee = new EventEmitter();
+        const server = Http.createServer((req, res) => {
 
             hitCount++;
-            var data = '';
+            let data = '';
 
-            req.on('data', function (chunk) {
+            req.on('data', (chunk) => {
 
                 data += chunk;
             });
 
-            req.on('end', function () {
+            req.on('end', () => {
 
-                var payload = JSON.parse(data);
-                var events = payload.events;
+                const payload = JSON.parse(data);
+                const events = payload.events;
 
                 expect(req.headers['x-api-key']).to.equal('12345');
                 expect(payload.schema).to.equal('good-http');
@@ -248,9 +248,9 @@ describe('GoodHttp', function () {
             });
         });
 
-        server.listen(0, '127.0.0.1', function () {
+        server.listen(0, '127.0.0.1', () => {
 
-            var reporter = new GoodHttp({
+            const reporter = new GoodHttp({
                 log: '*',
                 request: '*'
             }, {
@@ -263,13 +263,13 @@ describe('GoodHttp', function () {
                 }
             });
 
-            reporter.init(stream, ee, function (err) {
+            reporter.init(stream, ee, (err) => {
 
                 expect(err).to.not.exist();
 
-                for (var i = 0; i < 10; ++i) {
+                for (let i = 0; i < 10; ++i) {
 
-                    var eventType = i % 2 === 0 ? 'log' : 'request';
+                    const eventType = i % 2 === 0 ? 'log' : 'request';
 
                     stream.push({
                         id: i,
@@ -282,25 +282,25 @@ describe('GoodHttp', function () {
         });
     });
 
-    it('won\'t group events when mapEvents is false', function (done) {
+    it('won\'t group events when mapEvents is false', (done) => {
 
-        var stream = internals.readStream();
-        var hitCount = 0;
-        var ee = new EventEmitter();
-        var server = Http.createServer(function (req, res) {
+        const stream = internals.readStream();
+        let hitCount = 0;
+        const ee = new EventEmitter();
+        const server = Http.createServer((req, res) => {
 
             hitCount++;
-            var data = '';
+            let data = '';
 
-            req.on('data', function (chunk) {
+            req.on('data', (chunk) => {
 
                 data += chunk;
             });
 
-            req.on('end', function () {
+            req.on('end', () => {
 
-                var payload = JSON.parse(data);
-                var events = payload.events;
+                const payload = JSON.parse(data);
+                const events = payload.events;
 
                 expect(req.headers['x-api-key']).to.equal('12345');
                 expect(payload.schema).to.equal('good-http');
@@ -319,9 +319,9 @@ describe('GoodHttp', function () {
             });
         });
 
-        server.listen(0, '127.0.0.1', function () {
+        server.listen(0, '127.0.0.1', () => {
 
-            var reporter = new GoodHttp({
+            const reporter = new GoodHttp({
                 log: '*',
                 request: '*'
             }, {
@@ -335,13 +335,13 @@ describe('GoodHttp', function () {
                 mapEvents: false
             });
 
-            reporter.init(stream, ee, function (err) {
+            reporter.init(stream, ee, (err) => {
 
                 expect(err).to.not.exist();
 
-                for (var i = 0; i < 10; ++i) {
+                for (let i = 0; i < 10; ++i) {
 
-                    var eventType = i % 2 === 0 ? 'log' : 'request';
+                    const eventType = i % 2 === 0 ? 'log' : 'request';
 
                     stream.push({
                         id: i,
@@ -354,23 +354,23 @@ describe('GoodHttp', function () {
         });
     });
 
-    it('handles circular object references correctly', function (done) {
+    it('handles circular object references correctly', (done) => {
 
-        var stream = internals.readStream();
-        var hitCount = 0;
-        var ee = new EventEmitter();
-        var server = Http.createServer(function (req, res) {
+        const stream = internals.readStream();
+        let hitCount = 0;
+        const ee = new EventEmitter();
+        const server = Http.createServer((req, res) => {
 
-            var data = '';
+            let data = '';
             hitCount++;
 
-            req.on('data', function (chunk) {
+            req.on('data', (chunk) => {
 
                 data += chunk;
             });
-            req.on('end', function () {
+            req.on('end', () => {
 
-                var events = JSON.parse(data);
+                let events = JSON.parse(data);
                 events = events.events;
 
                 expect(events).to.exist();
@@ -386,20 +386,20 @@ describe('GoodHttp', function () {
             });
         });
 
-        server.listen(0, '127.0.0.1', function () {
+        server.listen(0, '127.0.0.1', () => {
 
-            var reporter = new GoodHttp({ log: '*' }, {
+            const reporter = new GoodHttp({ log: '*' }, {
                 endpoint: internals.getUri(server),
                 threshold: 5
             });
 
-            reporter.init(stream, ee, function (err) {
+            reporter.init(stream, ee, (err) => {
 
                 expect(err).to.not.exist();
 
-                for (var i = 0; i < 5; ++i) {
+                for (let i = 0; i < 5; ++i) {
 
-                    var data = {
+                    const data = {
                         event: 'log',
                         timestamp: Date.now(),
                         id: i
@@ -413,23 +413,23 @@ describe('GoodHttp', function () {
         });
     });
 
-    it('makes a last attempt to send any remaining log entries when the read stream ends', function (done) {
+    it('makes a last attempt to send any remaining log entries when the read stream ends', (done) => {
 
-        var hitCount = 0;
-        var ee = new EventEmitter();
-        var server = Http.createServer(function (req, res) {
+        let hitCount = 0;
+        const ee = new EventEmitter();
+        const server = Http.createServer((req, res) => {
 
-            var data = '';
+            let data = '';
             hitCount++;
 
-            req.on('data', function (chunk) {
+            req.on('data', (chunk) => {
 
                 data += chunk;
             });
-            req.on('end', function () {
+            req.on('end', () => {
 
-                var payload = JSON.parse(data);
-                var events = payload.events;
+                const payload = JSON.parse(data);
+                const events = payload.events;
 
                 expect(events.log).to.exist();
                 expect(events.log.length).to.equal(2);
@@ -439,10 +439,10 @@ describe('GoodHttp', function () {
             });
         });
 
-        server.listen(0, '127.0.0.1', function () {
+        server.listen(0, '127.0.0.1', () => {
 
-            var stream = internals.readStream();
-            var reporter = new GoodHttp({ log: '*' }, {
+            const stream = internals.readStream();
+            const reporter = new GoodHttp({ log: '*' }, {
                 endpoint: internals.getUri(server),
                 threshold: 3,
                 wreck: {
@@ -452,7 +452,7 @@ describe('GoodHttp', function () {
                 }
             });
 
-            reporter.init(stream, ee, function (err) {
+            reporter.init(stream, ee, (err) => {
 
                 expect(err).to.not.exist();
 
