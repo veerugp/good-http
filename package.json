@@ -9,7 +9,7 @@
     "test-cov-html": "lab -m 5000 -r html -o coverage.html -La code"
   },
   "dependencies": {
-    "json-stringify-safe": "5.0.x",
+    "fast-safe-stringify": "1.0.9",
     "wreck": "7.x.x"
   },
   "devDependencies": {

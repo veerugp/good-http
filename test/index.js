@@ -168,7 +168,7 @@ describe('GoodHttp', () => {
 
                 expect(events).to.exist();
                 expect(events).to.have.length(5);
-                expect(events[0]._data).to.equal('[Circular ~.events.0]');
+                expect(events[0]._data).to.equal('[Circular]');
 
                 expect(hitCount).to.equal(1);
 
