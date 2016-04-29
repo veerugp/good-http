@@ -2,7 +2,7 @@
 
 Http(s) broadcasting for Good process monitor
 
-[![Build Status](https://travis-ci.org/hapijs/good-file.svg?branch=master)](https://travis-ci.org/hapijs/good-file) ![Current Version](https://img.shields.io/npm/v/good-http.svg)
+[![Build Status](https://travis-ci.org/hapijs/good-http.svg?branch=master)](https://travis-ci.org/hapijs/good-http) ![Current Version](https://img.shields.io/npm/v/good-http.svg)
 
 Lead Maintainer: [Adam Bretz](https://github.com/arb)
 
