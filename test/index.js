@@ -216,7 +216,7 @@ describe('GoodHttp', () => {
             req.on('end', () => {
 
                 const payload = JSON.parse(data);
-                expect(payload).to.deep.include({
+                expect(payload).to.include({
                     schema: 'good-http'
                 });
                 expect(payload.events).to.have.length(2);
