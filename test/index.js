@@ -203,11 +203,9 @@ describe('GoodHttp', () => {
 
     it('makes a last attempt to send any remaining log entries on "finish"',  { plan: 2 }, (done) => {
 
-        let hitCount = 0;
         const server = Http.createServer((req, res) => {
 
             let data = '';
-            hitCount++;
 
             req.on('data', (chunk) => {
 
@@ -241,6 +239,138 @@ describe('GoodHttp', () => {
                 timestamp: Date.now(),
                 id: 2
             });
+            stream.push(null);
+        });
+    });
+
+    it('doesn\'t clear data on error until errorThreshold is reached', { plan: 15 }, (done) => {
+
+        let hitCount = 0;
+        let errorCallCount = 0;
+        const server = Http.createServer((req, res) => {
+
+            let data = '';
+            hitCount++;
+
+            req.on('data', (chunk) => {
+
+                data += chunk;
+            });
+            req.on('end', () => {
+
+                const payload = JSON.parse(data);
+                const events = payload.events;
+
+                expect(errorCallCount).to.equal(0);
+                expect(events).to.have.length(hitCount);
+
+                for (let i = 0; i < hitCount; ++i) {
+                    expect(events[i].id).to.equal(i);
+                }
+
+                req.socket.destroy();
+            });
+        });
+
+        server.listen(0, '127.0.0.1', () => {
+
+            const stream = internals.readStream();
+            const reporter = new GoodHttp(internals.getUri(server), {
+                threshold: 0,
+                errorThreshold: 2
+            });
+
+            reporter.on('error', () => {
+
+                errorCallCount++;
+                expect(hitCount).to.equal(3);
+                expect(reporter._data).to.have.length(0);
+                expect(errorCallCount).to.equal(1);
+                server.close(done);
+            });
+
+            stream.pipe(reporter);
+
+            for (let i = 0; i < 3; ++i) {
+                stream.push({ id: i });
+            }
+        });
+    });
+
+    it('it always ignores errors and clears logs if errorThreshold is null', { plan: 5 }, (done) => {
+
+        let hitCount = 0;
+        const server = Http.createServer((req, res) => {
+
+            let data = '';
+            hitCount++;
+
+            req.on('data', (chunk) => {
+
+                data += chunk;
+            });
+            req.on('end', () => {
+
+                const payload = JSON.parse(data);
+                const events = payload.events;
+
+                expect(events).to.have.length(1);
+                expect(events[0].id).to.equal(hitCount - 1);
+                req.socket.destroy();
+            });
+        });
+
+        server.listen(0, '127.0.0.1', () => {
+
+            const stream = internals.readStream();
+            const reporter = new GoodHttp(internals.getUri(server), {
+                threshold: 0,
+                errorThreshold: null
+            });
+
+            reporter.on('error', () => {
+
+                Code.fail('Request errors should not be reported');
+            });
+
+            reporter.on('finish', () => {
+
+                expect(hitCount).to.equal(2);
+                server.close(done);
+            });
+
+            stream.pipe(reporter);
+
+            stream.push({ id: 0 });
+            stream.push({ id: 1 });
+            stream.push(null);
+        });
+    });
+
+    it('reporters errors by default', { plan: 1 }, (done) => {
+
+        let hitCount = 0;
+        const server = Http.createServer((req, res) => {
+
+            hitCount++;
+            req.socket.destroy();
+        });
+
+        server.listen(0, '127.0.0.1', () => {
+
+            const stream = internals.readStream();
+            const reporter = new GoodHttp(internals.getUri(server), {
+                threshold: 0
+            });
+
+            reporter.on('error', () => {
+
+                expect(hitCount).to.equal(1);
+                server.close(done);
+            });
+
+            stream.pipe(reporter);
+            stream.push({ id: 0 });
             stream.push(null);
         });
     });
